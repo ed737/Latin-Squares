@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -26,18 +27,15 @@ namespace Latin_Squares
             UNVISITED
         }
 
-        public static int n;
-        public static int unknownCount;
         public static char[,] data;
-
+        public int n;
+        public int unknownCount;
+        public HashSet<char> alphabet;
         private Vertex[] rows;
         private Vertex[] cols;
         private Edge[,] edges;
-        private PriorityQueue<Vertex, int> RowVertexQueue;
-        private PriorityQueue<Vertex, int> ColumnVertexQueue;
         private PriorityQueue<Vertex, int> VertexQueue;
         private LinkedList<Edge> EdgeLL;
-        public static HashSet<char> alphabet = new HashSet<char>();
 
         public BiGraph(int inN, char[,] inData)
         {
@@ -50,11 +48,8 @@ namespace Latin_Squares
             data = new char[n, n];
             edges = new Edge[n, n];
             data = inData;
-            RowVertexQueue = new PriorityQueue<Vertex, int>();
-            ColumnVertexQueue = new PriorityQueue<Vertex, int>();
             VertexQueue = new PriorityQueue<Vertex, int>();
             EdgeLL = new LinkedList<Edge>();
-            
 
             // create the row and column verticies 
             for (int i = 0; i < n; i++)
@@ -71,16 +66,11 @@ namespace Latin_Squares
                     AddEdge(rows[i], cols[j], data[i, j]);
                 }
 
-                // Priority queue row verticies by count of available chars in charset
-                RowVertexQueue.Enqueue(rows[i], rows[i].vertexAvailableChars.Count);
-                ColumnVertexQueue.Enqueue(cols[i], cols[i].vertexAvailableChars.Count);
-
+                // Priority queue verticies by count of available chars in Vertex charset
                 VertexQueue.Enqueue(rows[i], rows[i].vertexAvailableChars.Count);
                 VertexQueue.Enqueue(cols[i], cols[i].vertexAvailableChars.Count);
-
-                Debug.WriteLine(" vertQueue Length = " + RowVertexQueue.Count);
             }
-            DebugPrintVertexState();
+            //DebugPrintVertexState();
             DebugPrintVertexQueueState();
             Debug.WriteLine("\r\nUnknown Count = " + unknownCount);
         }
@@ -101,7 +91,22 @@ namespace Latin_Squares
                 }
             }
         }
-        public void CopyData()
+        public int UpdateUnknownCount()
+        {
+            int temp = 0;
+            for (int i = 0; i < n; i++) 
+            {
+                for(int j = 0; j < n; j++)
+                {
+                    if (data[i, j] == ' ')
+                    {
+                        temp++;
+                    }
+                }
+            }
+            return temp;
+        }
+        public void UpdateData()
         {
             for (int i = 0; i < n; i++)
             {
@@ -128,89 +133,34 @@ namespace Latin_Squares
         }
         public bool IsValid(Edge e, char c)
         {
-            return (e.row.vertexAvailableChars.Contains(c) && e.col.vertexAvailableChars.Contains(c));
+            return e.row.vertexAvailableChars.Contains(c) && e.col.vertexAvailableChars.Contains(c);
         }
         /******************************************
         *  Solve Methods
         * *****************************************/
-        
-        private bool DFS_Recurse_Edges(PriorityQueue<Edge, int> eq)
-        {
-            if (unknownCount == 0)
-            {
-                Debug.WriteLine("Returned from edge unknown count check");
-                return true;
-            }
-           
-            if (eq.Count > 0)
-            {
-                var e = eq.Dequeue();
-                if(e.state == EdgeState.KNOWN)
-                {
-                    if (DFS_Recurse_Edges(eq))
-                    {
-                        return true;
-                    }
-                }   
-                for (int i = 0; i < e.availableChars.Count; i++)
-                {
-                    char c = e.availableChars.First();
-                    e.GetAvailableChars();
-                    if (IsValid(e, c))
-                    {
-                        Debug.WriteLine("Setting E[" + e.row.Index() + ", " + e.col.Index() + ", to " + c);
-                        unknownCount--;
-                        //e.availableChars.Remove(c);
-                        data[e.row.Index(), e.col.Index()] = c;
-                        e.SetValue(c);
-                        e.GetAvailableChars();
-                        if (DFS_Recurse_Edges(eq))
-                        {
-                            return true;
-                        }
-                    }
-                    else
-                    {
-                        Debug.WriteLine("Resetting E[" + e.row.Index() + ", " + e.col.Index() + ", to " + ' ');
-                        unknownCount++;
-                        //e.availableChars.Add(c);
-                        //data[e.row.Index(), e.col.Index()] = ' ';
-                        //e.col.vertexAvailableChars.Add(c);
-                        //e.row.vertexAvailableChars.Add(c);
-                        e.GetAvailableChars();
-                        if (DFS_Recurse_Edges(eq))
-                        {
-                            return true;
-                        }
-                    }
-
-                }
-                return false;
-            }
-            return false;
-           
-        }
+       
         private bool DFS_Recurse(LinkedListNode<Edge> e)
         {
-            if(unknownCount < 0)
+            unknownCount = UpdateUnknownCount();
+            if (unknownCount < 0)
             {
                 Debug.WriteLine("Exit Recurse unkownCount = 0");
                 return true;
             }
-            
+
             e.Value.GetAvailableChars();
-            foreach (char c in e.Value.availableChars)
+            foreach (char c in e.Value.GetAvailableChars())
             {
                 e.Value.GetAvailableChars();
                 if (IsValid(e.Value, c))
                 {
                     Debug.WriteLine("Setting E[" + e.Value.row.Index() + ", " + e.Value.col.Index() + ", to " + c);
                     unknownCount--;
-                    e.Value.availableChars.Remove(c);
+                    e.Value.GetAvailableChars().Remove(c);
                     data[e.Value.row.Index(), e.Value.col.Index()] = c;
                     e.Value.SetValue(c);
                     e.Value.GetAvailableChars();
-                    if(e.Next == null)
+                    if (e.Next == null)
                     {
                         Debug.WriteLine("Exit Recurse e.Next == null");
                         return false;
@@ -225,7 +175,7 @@ namespace Latin_Squares
                 {
                     Debug.WriteLine("Resetting E[" + e.Value.row.Index() + ", " + e.Value.col.Index() + ", to " + ' ');
                     unknownCount++;
-                    e.Value.availableChars.Add(c);
+                    e.Value.GetAvailableChars().Add(c);
                     data[e.Value.row.Index(), e.Value.col.Index()] = ' ';
                     e.Value.col.vertexAvailableChars.Add(c);
                     e.Value.row.vertexAvailableChars.Add(c);
@@ -250,38 +200,34 @@ namespace Latin_Squares
             {
                 DFS_Recurse(e.Next);
             }
-            /*
-            else if (e.Previous != null)
+            if (unknownCount < 10)
             {
-                DFS_Recurse(e.Previous);
+                
+                Debug.WriteLine(" Unknown count = " + unknownCount);
+                DebugPrintData();
             }
-            */
             return false;
         }
-        private void DFS()
+        private bool DFS()
         {
             PopulateLinkedList();
-            DebugPrintEdgeLL();
+
+            bool solved = false;
+            int count = unknownCount;
             if (EdgeLL.First != null)
             {
-                bool solved = DFS_Recurse(EdgeLL.First);
+                solved = DFS_Recurse(EdgeLL.First);
             }
+            return solved;
         }
         
-        public bool Solve()
+        public void Solve()
         {
-            DebugPrintVertexState();
+            //DebugPrintVertexState();
             Debug.WriteLine("Enter DFS() Unknown count  = " + unknownCount);
             DFS();
-            Debug.WriteLine("Done!");
             DebugPrintData();
-
-            return true;
         }
-
-        /******************************************
-        *  Debug Methods
-        * *****************************************/
 
         override
         public string ToString()
@@ -292,27 +238,20 @@ namespace Latin_Squares
             return s;
         }
 
+        /******************************************
+        *  Debug Methods
+        * *****************************************/
         private void DebugPrintVertexQueueState()
         {
-            //PriorityQueue<Vertex, int> tempQueue = ColumnvertQueue;
-            var tempRows = RowVertexQueue.UnorderedItems.ToList();
-            var tempCols = ColumnVertexQueue.UnorderedItems.ToList();
+            string s = "";
+            var temp = VertexQueue.UnorderedItems.ToList();
             Debug.WriteLine("\r\n\r\n***    Vertex Queue State:   ***\r\n");
-            string s = "Rows:\r\n";
-            foreach (var v in tempRows)
+            foreach (var v in temp)
             {
                 s += Enum.GetName(v.Element.type) + " " + v.Element.Index() + " Priority = " + v.Priority + "\r\n";
             }
-            
-            s += "\r\nColumns:\r\n"; 
-            foreach (var v in tempCols)
-            {
-                s += Enum.GetName(v.Element.type) + " " + v.Element.Index() + " Priority = " + v.Priority + "\r\n";
-            }
-            
             Debug.WriteLine(s + "\r\n***    End Vertex Queue State:   ***\r\n\r\n");
         }
-
         private void DebugPrintEdgeLL()
         {
             Debug.WriteLine("***    EdgeLL:     ***");
@@ -362,22 +301,24 @@ namespace Latin_Squares
         }
     }
 
-/******************************************
-*  Vertex Class
-* *****************************************/
+    /******************************************
+    *  Vertex Class
+    * *****************************************/
     public class Vertex
     {
         private BiGraph super;
         public VertexType type;
         private int index;
-        public bool visted = false;
-        public HashSet<char> vertexAvailableChars = new HashSet<char>(alphabet);
-        public PriorityQueue<Edge, int> edgeQueue = new();
-        public List<Edge> edgeList = [];
+        public HashSet<char> vertexAvailableChars;
+        public PriorityQueue<Edge, int> edgeQueue;
+        private List<Edge> edgeList;
 
         public Vertex(BiGraph inSuper, int inIndex, VertexType inVertexType)
         {
             super = inSuper;
+            vertexAvailableChars = new HashSet<char>(super.alphabet);
+            edgeQueue = new();
+            edgeList = [];
             index = inIndex;
             type = inVertexType;
         }
@@ -385,7 +326,7 @@ namespace Latin_Squares
         {
             if(type == VertexType.Row)
             {
-                for(int i = 0; i < n; i++)
+                for(int i = 0; i < super.n; i++)
                 {
                     if (data[index, i] != ' ')
                     {
@@ -395,7 +336,7 @@ namespace Latin_Squares
             }
             else
             {
-                for (int i = 0; i < n; i++)
+                for (int i = 0; i < super.n; i++)
                 {
                     if (data[i, index] != ' ')
                     {
@@ -434,15 +375,15 @@ namespace Latin_Squares
         }
     }
 
-/******************************************
-*  Edge Class
-* *****************************************/
+    /******************************************
+    *  Edge Class
+    * *****************************************/
     public class Edge
     {
         private BiGraph super;
         private char value;
         public EdgeState state;
-        public HashSet<char> availableChars = new HashSet<char>(alphabet);
+        private HashSet<char> availableChars;
 
         public Vertex row { get; set; }
         public Vertex col { get; set; }
@@ -450,6 +391,7 @@ namespace Latin_Squares
         public Edge(BiGraph inSuper, Vertex inRow, Vertex inCol, char inValue)
         {
             super = inSuper;
+            availableChars = new HashSet<char>(super.alphabet);
             value = inValue; 
             row = inRow;
             col = inCol;
@@ -457,7 +399,7 @@ namespace Latin_Squares
             if (value != ' ')
             {
                 state = EdgeState.KNOWN;
-                unknownCount--;
+                super.unknownCount--;
             }
             else
             {
@@ -482,6 +424,16 @@ namespace Latin_Squares
         {
             UpdateAvailableChars();
             return availableChars;
+        }
+        public void RemoveChar(char inChar)
+        {
+            availableChars.Remove(inChar);
+            UpdateAvailableChars();
+        }
+        public void AddChar(char inChar)
+        {
+            availableChars.Add(inChar);
+            UpdateAvailableChars();
         }
         public char GetValue()
         {

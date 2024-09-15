@@ -204,8 +204,10 @@
             Controls.Add(gb_Solve);
             Controls.Add(gb_Generate);
             Controls.Add(gb_Setup);
+            MaximizeBox = false;
             Name = "FormSolver";
-            Text = "FormSolver";
+            StartPosition = FormStartPosition.CenterScreen;
+            Text = "Latin Square Generator and Solver";
             gb_Setup.ResumeLayout(false);
             gb_Setup.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)nud_OrderSelect).EndInit();
