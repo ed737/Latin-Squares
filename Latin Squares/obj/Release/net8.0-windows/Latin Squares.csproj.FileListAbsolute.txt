@@ -1,0 +1,18 @@
+C:\Users\edm73\source\repos\Latin Squares\Latin Squares\bin\Release\net8.0-windows\Latin Squares.exe
+C:\Users\edm73\source\repos\Latin Squares\Latin Squares\bin\Release\net8.0-windows\Latin Squares.deps.json
+C:\Users\edm73\source\repos\Latin Squares\Latin Squares\bin\Release\net8.0-windows\Latin Squares.runtimeconfig.json
+C:\Users\edm73\source\repos\Latin Squares\Latin Squares\bin\Release\net8.0-windows\Latin Squares.dll
+C:\Users\edm73\source\repos\Latin Squares\Latin Squares\bin\Release\net8.0-windows\Latin Squares.pdb
+C:\Users\edm73\source\repos\Latin Squares\Latin Squares\obj\Release\net8.0-windows\Latin_Squares.FormSolver.resources
+C:\Users\edm73\source\repos\Latin Squares\Latin Squares\obj\Release\net8.0-windows\Latin_Squares.LatinSquareGenerate.resources
+C:\Users\edm73\source\repos\Latin Squares\Latin Squares\obj\Release\net8.0-windows\Latin_Squares.LatinSquareSolve.resources
+C:\Users\edm73\source\repos\Latin Squares\Latin Squares\obj\Release\net8.0-windows\Latin Squares.csproj.GenerateResource.cache
+C:\Users\edm73\source\repos\Latin Squares\Latin Squares\obj\Release\net8.0-windows\Latin Squares.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\edm73\source\repos\Latin Squares\Latin Squares\obj\Release\net8.0-windows\Latin Squares.AssemblyInfoInputs.cache
+C:\Users\edm73\source\repos\Latin Squares\Latin Squares\obj\Release\net8.0-windows\Latin Squares.AssemblyInfo.cs
+C:\Users\edm73\source\repos\Latin Squares\Latin Squares\obj\Release\net8.0-windows\Latin Squares.csproj.CoreCompileInputs.cache
+C:\Users\edm73\source\repos\Latin Squares\Latin Squares\obj\Release\net8.0-windows\Latin Squares.dll
+C:\Users\edm73\source\repos\Latin Squares\Latin Squares\obj\Release\net8.0-windows\refint\Latin Squares.dll
+C:\Users\edm73\source\repos\Latin Squares\Latin Squares\obj\Release\net8.0-windows\Latin Squares.pdb
+C:\Users\edm73\source\repos\Latin Squares\Latin Squares\obj\Release\net8.0-windows\Latin Squares.genruntimeconfig.cache
+C:\Users\edm73\source\repos\Latin Squares\Latin Squares\obj\Release\net8.0-windows\ref\Latin Squares.dll
